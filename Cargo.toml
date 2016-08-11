@@ -1,0 +1,15 @@
+[package]
+name = "Twitter4Rust"
+version = "0.1.0"
+authors = ["alphaKAI <alpha.kai.net@alpha-kai-net.info>"]
+
+license = "MIT"
+repository = "https://github.com/alphaKAI/Twitter4Rust"
+description = "The Simple Twitter API Wrapper Library For Rust."
+
+[dependencies]
+rustc-serialize = "0.3"
+time="*"
+curl = "0.3.3"
+[dependencies.rust-crypto]
+git = "https://github.com/DaGenix/rust-crypto"

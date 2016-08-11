@@ -1,0 +1,7 @@
+[package]
+name = "t4rs_test"
+version = "0.1.0"
+authors = ["alphaKAI <alpha.kai.net@alpha-kai-net.info>"]
+
+[dependencies]
+"Twitter4Rust" = {path = "../"}
