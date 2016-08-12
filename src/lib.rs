@@ -183,7 +183,7 @@ fn build_params(oauth_params: LinkedList<Parameter>, additional_params: LinkedLi
   params
 }
 
-pub fn request(keys: &Keys, method: Method, end_point: &str, argument_params: LinkedList<Parameter>) -> String {
+pub fn request(keys: &Keys, method: Method, end_point: &str, argument_params: LinkedList<Parameter>) -> Result<String> {
 
   let mut oauth_params: LinkedList<Parameter> = gen_oauth_params(keys);
   let mut params: LinkedList<Parameter> = build_params(oauth_params.clone(), argument_params.clone());
@@ -208,44 +208,39 @@ pub fn request(keys: &Keys, method: Method, end_point: &str, argument_params: Li
   let mut easy = Easy::new();
 
   let mut list = List::new();
-  list.append(&authorize).unwrap();
-  easy.http_headers(list).unwrap();
+  try!(list.append(&authorize));
+  try!(easy.http_headers(list));
 
   match method {
     Method::Get => {
-      easy.url(&format!("{}?{}", url, path)).unwrap();
+      try!(easy.url(&format!("{}?{}", url, path)));
 
       let mut transfer = easy.transfer();
 
-      transfer.write_function(|data| {
-          dst.extend_from_slice(data);
-          Ok(data.len())
-        })
-        .unwrap();
+      try!(transfer.write_function(|data| {
+        dst.extend_from_slice(data);
+        Ok(data.len())
+      }));
 
-      transfer.perform().unwrap();
+      try!(transfer.perform());
     }
     Method::Post => {
-      easy.post(true).unwrap();
-      easy.post_field_size(path.len() as u64).unwrap();
-      easy.url(&url).unwrap();
+      try!(easy.post(true));
+      try!(easy.post_field_size(path.len() as u64));
+      try!(easy.url(&url));
 
       let mut transfer = easy.transfer();
 
-      transfer.read_function(|buf| Ok(path.as_bytes().read(buf).unwrap_or(0))).unwrap();
+      try!(transfer.read_function(|buf| Ok(path.as_bytes().read(buf).unwrap_or(0))));
 
-      transfer.write_function(|data| {
-          dst.extend_from_slice(data);
-          Ok(data.len())
-        })
-        .unwrap();
+      try!(transfer.write_function(|data| {
+        dst.extend_from_slice(data);
+        Ok(data.len())
+      }));
 
-      transfer.perform().unwrap();
+      try!(transfer.perform());
     }
   }
 
-
-  let ret = String::from_utf8(dst).expect("failed to convert u8(dst) to String(ret)");
-
-  ret
+  String::from_utf8(dst).map_err(|e| e.into())
 }
