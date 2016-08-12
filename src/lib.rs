@@ -11,6 +11,41 @@ use std::collections::LinkedList;
 use curl::easy::{Easy, List};
 use std::io::Read;
 
+#[derive(Debug)]
+pub enum Error {
+  Curl(curl::Error),
+  FromUtf8(std::string::FromUtf8Error)
+}
+
+impl std::fmt::Display for Error {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    match *self {
+      Error::Curl(ref err) => write!(f, "Error::Curl: {}", err),
+      Error::FromUtf8(ref err) => write!(f, "Error::FromUtf8: {}", err),
+    }
+  }
+}
+
+impl std::error::Error for Error {
+  fn description(&self) -> &str {
+    match *self {
+      Error::Curl(ref err) => err.description(),
+      Error::FromUtf8(ref err) => err.description(),
+    }
+  }
+}
+
+impl From<curl::Error> for Error {
+  fn from(err: curl::Error) -> Error { Error::Curl(err) }
+}
+
+impl From<std::string::FromUtf8Error> for Error {
+  fn from(err: std::string::FromUtf8Error) -> Error { Error::FromUtf8(err) }
+}
+
+pub type Result<T> = std::result::Result<T, Error>;
+
+
 fn url_encode(s: &str) -> String {
   let mut en = String::new();
 
