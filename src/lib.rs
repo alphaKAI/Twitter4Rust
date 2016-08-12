@@ -67,8 +67,7 @@ impl Parameter {
 }
 
 fn join_parameters(params: &LinkedList<Parameter>, sep: &str) -> String {
-  let joined: Vec<_> =
-    params.into_iter().map(|param| format!("{0}={1}", param.key, param.value)).collect();
+  let joined: Vec<_> = params.into_iter().map(|param| format!("{0}={1}", param.key, param.value)).collect();
 
   return joined.join(sep);
 }
@@ -81,11 +80,7 @@ pub struct Keys {
 }
 
 impl Keys {
-  pub fn new(consumer_key: &str,
-             consumer_secret: &str,
-             access_token: &str,
-             access_token_secret: &str)
-             -> Keys {
+  pub fn new(consumer_key: &str, consumer_secret: &str, access_token: &str, access_token_secret: &str) -> Keys {
     Keys {
       consumer_key: consumer_key.to_string(),
       consumer_secret: consumer_secret.to_string(),
@@ -95,12 +90,7 @@ impl Keys {
   }
 }
 
-fn signature(consumer_secret: &str,
-             access_token_secret: &str,
-             method: Method,
-             url: &str,
-             params: &LinkedList<Parameter>)
-             -> String {
+fn signature(consumer_secret: &str, access_token_secret: &str, method: Method, url: &str, params: &LinkedList<Parameter>) -> String {
   let query = join_parameters(params, "&");
 
   let consumer_secret = url_encode(consumer_secret);
@@ -139,9 +129,7 @@ fn gen_oauth_params(keys: &Keys) -> LinkedList<Parameter> {
   params
 }
 
-fn build_params(oauth_params: LinkedList<Parameter>,
-                additional_params: LinkedList<Parameter>)
-                -> LinkedList<Parameter> {
+fn build_params(oauth_params: LinkedList<Parameter>, additional_params: LinkedList<Parameter>) -> LinkedList<Parameter> {
   let mut params: LinkedList<Parameter> = LinkedList::new();
 
   for e in oauth_params {
@@ -160,15 +148,10 @@ fn build_params(oauth_params: LinkedList<Parameter>,
   params
 }
 
-pub fn request(keys: &Keys,
-               method: Method,
-               end_point: &str,
-               argument_params: LinkedList<Parameter>)
-               -> String {
+pub fn request(keys: &Keys, method: Method, end_point: &str, argument_params: LinkedList<Parameter>) -> String {
 
   let mut oauth_params: LinkedList<Parameter> = gen_oauth_params(keys);
-  let mut params: LinkedList<Parameter> = build_params(oauth_params.clone(),
-                                                       argument_params.clone());
+  let mut params: LinkedList<Parameter> = build_params(oauth_params.clone(), argument_params.clone());
 
   let url = format!("{}{}", BASE_URL, end_point);
 
@@ -214,8 +197,7 @@ pub fn request(keys: &Keys,
 
       let mut transfer = easy.transfer();
 
-      transfer.read_function(|buf| Ok(path.as_bytes().read(buf).unwrap_or(0)))
-        .unwrap();
+      transfer.read_function(|buf| Ok(path.as_bytes().read(buf).unwrap_or(0))).unwrap();
 
       transfer.write_function(|data| {
           dst.extend_from_slice(data);
