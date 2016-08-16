@@ -28,10 +28,18 @@ fn url_encode(s: &str) -> String {
 }
 
 fn url_unreserved(c: char) -> bool {
-  if 'a' <= c && c <= 'z' { return true; }
-  if '0' <= c && c <= '9' { return true; }
-  if 'A' <= c && c <= 'Z' { return true; }
-  if c == '-' || c == '.' || c == '_' || c == '~' { return true; }
+  if 'a' <= c && c <= 'z' {
+    return true;
+  }
+  if '0' <= c && c <= '9' {
+    return true;
+  }
+  if 'A' <= c && c <= 'Z' {
+    return true;
+  }
+  if c == '-' || c == '.' || c == '_' || c == '~' {
+    return true;
+  }
   return false;
 }
 
@@ -45,7 +53,7 @@ pub enum Method {
 
 #[derive(Clone)]
 pub struct Parameter {
-  key:   String,
+  key: String,
   value: String
 }
 
@@ -60,43 +68,42 @@ impl Parameter {
 
 fn join_parameters(params: &LinkedList<Parameter>, sep: &str) -> String {
   let joined: Vec<_> = params.into_iter().map(|param| format!("{0}={1}", param.key, param.value)).collect();
-  
+
   return joined.join(sep);
 }
 
 pub struct Keys {
-  consumer_key:        String,
-  consumer_secret:     String,
-  access_token:        String, 
+  consumer_key: String,
+  consumer_secret: String,
+  access_token: String,
   access_token_secret: String
 }
 
 impl Keys {
-  pub fn new (consumer_key: &str, consumer_secret: &str,
-          access_token: &str, access_token_secret: &str) -> Keys {
+  pub fn new(consumer_key: &str, consumer_secret: &str, access_token: &str, access_token_secret: &str) -> Keys {
     Keys {
-      consumer_key:        consumer_key.to_string(),
-      consumer_secret:     consumer_secret.to_string(),
-      access_token:        access_token.to_string(),
+      consumer_key: consumer_key.to_string(),
+      consumer_secret: consumer_secret.to_string(),
+      access_token: access_token.to_string(),
       access_token_secret: access_token_secret.to_string()
     }
   }
 }
 
 fn signature(consumer_secret: &str, access_token_secret: &str, method: Method, url: &str, params: &LinkedList<Parameter>) -> String {
-  let query =  join_parameters(params, "&");
+  let query = join_parameters(params, "&");
 
-  let consumer_secret     = url_encode(consumer_secret);
+  let consumer_secret = url_encode(consumer_secret);
   let access_token_secret = url_encode(access_token_secret);
-  let key   = format!("{}&{}", consumer_secret, access_token_secret);
+  let key = format!("{}&{}", consumer_secret, access_token_secret);
 
   let method = match method {
     Method::Post => "POST",
-    Method::Get  => "GET"
+    Method::Get => "GET",
   };
 
 
-  let msg: Vec<String> = vec!(method, &url, &query).into_iter().map(|x| url_encode(x)).collect();
+  let msg: Vec<String> = vec![method, &url, &query].into_iter().map(|x| url_encode(x)).collect();
   let msg = msg.join("&");
 
   let mut res = Hmac::new(Sha1::new(), &key.into_bytes());
@@ -130,8 +137,8 @@ fn build_params(oauth_params: LinkedList<Parameter>, additional_params: LinkedLi
   }
 
   for e in additional_params {
-    let k = Parameter { 
-      key :  url_encode(&e.key),
+    let k = Parameter {
+      key: url_encode(&e.key),
       value: url_encode(&e.value)
     };
 
@@ -148,12 +155,17 @@ pub fn request(keys: &Keys, method: Method, end_point: &str, argument_params: Li
 
   let url = format!("{}{}", BASE_URL, end_point);
 
-  let oauth_signature = signature(&keys.consumer_secret, &keys.access_token_secret, method, &url, &params);
+  let oauth_signature = signature(&keys.consumer_secret,
+                                  &keys.access_token_secret,
+                                  method,
+                                  &url,
+                                  &params);
 
   oauth_params.push_back(Parameter::new("oauth_signature", &oauth_signature));
   params.push_back(Parameter::new("oauth_signature", &oauth_signature));
 
-  let authorize = format!("Authorization: OAuth {}", join_parameters(&oauth_params, ","));
+  let authorize = format!("Authorization: OAuth {}",
+                          join_parameters(&oauth_params, ","));
 
   let path = join_parameters(&params, "&");
 
@@ -171,27 +183,27 @@ pub fn request(keys: &Keys, method: Method, end_point: &str, argument_params: Li
       let mut transfer = easy.transfer();
 
       transfer.write_function(|data| {
-        dst.extend_from_slice(data);
-        Ok(data.len())
-      }).unwrap();
+          dst.extend_from_slice(data);
+          Ok(data.len())
+        })
+        .unwrap();
 
       transfer.perform().unwrap();
-    },
+    }
     Method::Post => {
       easy.post(true).unwrap();
       easy.post_field_size(path.len() as u64).unwrap();
       easy.url(&url).unwrap();
 
-      let mut transfer = easy.transfer();      
+      let mut transfer = easy.transfer();
 
-      transfer.read_function(|buf| {
-        Ok(path.as_bytes().read(buf).unwrap_or(0))
-      }).unwrap();
+      transfer.read_function(|buf| Ok(path.as_bytes().read(buf).unwrap_or(0))).unwrap();
 
       transfer.write_function(|data| {
-        dst.extend_from_slice(data);
-        Ok(data.len())
-      }).unwrap();
+          dst.extend_from_slice(data);
+          Ok(data.len())
+        })
+        .unwrap();
 
       transfer.perform().unwrap();
     }
@@ -202,4 +214,3 @@ pub fn request(keys: &Keys, method: Method, end_point: &str, argument_params: Li
 
   ret
 }
-
