@@ -12,12 +12,12 @@ fn main() {
   );
 
   let params: LinkedList<Parameter> = LinkedList::new();
-  println!("{}", request(&keys, Method::Get, "account/verify_credentials.json", params));
+  println!("{}", request(&keys, Method::Get, "account/verify_credentials.json", params).unwrap());
 
   let mut params2: LinkedList<Parameter> = LinkedList::new();
 
   params2.push_back(Parameter::new("status", "Hello World From Rust!!!"));
 
-  println!("result -> {}", request(&keys, Method::Post, "/statuses/update.json", params2));
+  println!("result -> {}", request(&keys, Method::Post, "/statuses/update.json", params2).unwrap());
 }
 
